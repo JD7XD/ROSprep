@@ -19,6 +19,8 @@ Topics - way of communicating between nodes( nodes can either subscribe or publi
               1 publish/many subscriber, 
                one way communication
               ![image](https://github.com/JD7XD/ROSprep/assets/132233669/b96df0ca-37ae-4536-a6d0-d9538bda900b)
+
+
 Messages - to describe the content inside the topic
 
 --------------------------------------------------------------------------------------------------------------
