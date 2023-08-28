@@ -26,10 +26,10 @@ Messages - to describe the content inside the topic
 --------------------------------------------------------------------------------------------------------------
 
 **Running the code by starting the roscore**
-after publisher code written and cmakelists.txt edited --> terminal --> catkin_make command to build
-source the file - source devel/setup.bash (command)
-new cmd terminal --> roscore (command to start the process)
-now run the ros node on 1st terminal --> rosrun **pkg_name publisher_node (command)
-now open ros topic in new terminal --> rostopic List (cmd) - to check active topics
-in in the topic terminal --> rostopic echo /**Name_of_Topic (cmd)
---> Displays the string mentioned in code
+1. after publisher code written and cmakelists.txt edited --> terminal --> catkin_make command to build
+2. source the file - source devel/setup.bash (command)
+3. new cmd terminal --> roscore (command to start the process)
+4. now run the ros node on 1st terminal --> rosrun **pkg_name publisher_node (command)
+5. now open ros topic in new terminal --> rostopic List (cmd) - to check active topics
+6. in in the topic terminal --> rostopic echo /**Name_of_Topic (cmd)
+7. --> Displays the string mentioned in code
