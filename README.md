@@ -10,18 +10,19 @@
 10. **Advanced:** Dive into mapping, ROS 2, path planning.
 11. **Resources:** Consider books, online courses for structured learning.
 
-mkdir -p work/src
-catkin_make --> creates devel and build folders inside work folder along with src that contain the necessary tools
-create a package inside source folder - catkin_create_pkg **name
-roscore - collection of nodes and programs, basic structure of ros - always runs during a ros project
-node - single executable file, most of the necessary code - should take and send data to other nodes, can be done by service or topics
-Topics - way of communicating between nodes( nodes can either subscribe or publish), 
+**Starting a Project**
+1. mkdir -p work/src
+2. catkin_make --> creates devel and build folders inside work folder along with src that contain the necessary tools
+3. create a package inside source folder - catkin_create_pkg **name
+4. roscore - collection of nodes and programs, basic structure of ros - always runs during a ros project
+5. node - single executable file, most of the necessary code - should take and send data to other nodes, can be done by service or topics
+6. Topics - way of communicating between nodes( nodes can either subscribe or publish), 
               1 publish/many subscriber, 
                one way communication
               ![image](https://github.com/JD7XD/ROSprep/assets/132233669/b96df0ca-37ae-4536-a6d0-d9538bda900b)
 
 
-Messages - to describe the content inside the topic
+7. Messages - to describe the content inside the topic
 
 --------------------------------------------------------------------------------------------------------------
 
