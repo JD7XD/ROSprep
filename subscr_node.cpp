@@ -1,13 +1,11 @@
 #include "ros/ros.h"
-#include "std_msgs/String.h"
+#include "tutorial/data.h"
 
-
-void wmtolog(const std_msgs::String::ConstPtr& msg){
-    ROS_INFO("The message that was received is %s",msg->data.c_str());
+void wmtolog(const tutorial::data &msg){
+    ROS_INFO("Name: %s\n",msg.name.c_str());
+    ROS_INFO("Age: %d\n",msg.age);
+    ROS_INFO("Gender: %s\n",msg.sex.c_str());
 }
-
-
-
 
 int main(int x, char **y){
     ros::init(x,y,"subscriber"); //initialze
