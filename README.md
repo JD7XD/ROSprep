@@ -34,3 +34,10 @@
 5. now open ros topic in new terminal --> rostopic List (cmd) - to check active topics
 6. in in the topic terminal --> rostopic echo /**Name_of_Topic (cmd)
 7. --> Displays the string mentioned in code
+
+
+------------------------------------------------------------------------------------------------------------------------
+Send message
+1. create a new folder under the package (eg. Tutorial)
+2. initialize all variables to be sent (string name)
+3. add dependencies in package.xml file (build and executable dependancy)
