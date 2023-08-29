@@ -37,7 +37,18 @@
 
 
 ------------------------------------------------------------------------------------------------------------------------
-Send message
+**Send message**
 1. create a new folder under the package (eg. Tutorial)
 2. initialize all variables to be sent (string name)
 3. add dependencies in package.xml file (build and executable dependancy)
+   -   <build_depend>message_generation</build_depend>
+       <exec_depend>message_runtime</exec_depend>
+4. uncomment "generate message in "msg" folder" lines and type in the file name (data.msg)
+
+-------------------------------------------------------------------------------------------------------------
+**Service**
+create a service
+1. catkin_make
+2. rosrun tutorial add_srv_node in terminal 1
+3. terminal3 - rosservice list -> to check all active services
+4. rosservice call /**name --> to run
