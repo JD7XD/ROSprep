@@ -9,9 +9,7 @@
 9. **Community:** Join ROS forums for help and discussions.
 10. **Advanced:** Dive into mapping, ROS 2, path planning.
 11. **Resources:** Consider books, online courses for structured learning.
-----------------------------------------------------------------------------------------
-**All of the codes and content is learnt from Emil Vidmark's YouTube **
--------------------------------------------------------------------------------------------
+
 **Starting a Project**
 1. mkdir -p work/src
 2. catkin_make --> creates devel and build folders inside work folder along with src that contain the necessary tools
@@ -54,3 +52,8 @@ create a service
 2. rosrun tutorial add_srv_node in terminal 1
 3. terminal3 - rosservice list -> to check all active services
 4. rosservice call /**name --> to run
+
+
+   ----------------------------------------------------------------------------------------
+**All of the codes and content is learnt from Emil Vidmark's YouTube **
+-------------------------------------------------------------------------------------------
