@@ -9,7 +9,9 @@
 9. **Community:** Join ROS forums for help and discussions.
 10. **Advanced:** Dive into mapping, ROS 2, path planning.
 11. **Resources:** Consider books, online courses for structured learning.
-
+----------------------------------------------------------------------------------------
+**All of the codes and content is learnt from Emil Vidmark's YouTube **
+-------------------------------------------------------------------------------------------
 **Starting a Project**
 1. mkdir -p work/src
 2. catkin_make --> creates devel and build folders inside work folder along with src that contain the necessary tools
