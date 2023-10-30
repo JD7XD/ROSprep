@@ -1,36 +1,37 @@
 #include <ros/ros.h>
 #include <std_msgs/Int32.h>
+#include <motor_msgs/MotorData.h>
 
-std_msgs::Int32 combined_encoder;
+ros::Publisher motor_pub;
+std_msgs::Int32 left_data;
+std_msgs::Int32 right_data;
 
-void leftEncoderCallback(const std_msgs::Int32::ConstPtr& left_enc) {
-    // Process data from the left encoder topic
-    combined_encoder.data = left_enc->data; // For example, just copy the left encoder data
+void leftEncoderCallback(const std_msgs::Int32::ConstPtr& msg) {
+    left_data = *msg;
+    publishMotorData();
 }
 
-void rightEncoderCallback(const std_msgs::Int32::ConstPtr& right_enc) {
-    // Process data from the right encoder topic
-    // Combine the data or perform any other necessary processing
-    combined_encoder.data += right_enc->data; // For example, add the right encoder data
+void rightEncoderCallback(const std_msgs::Int32::ConstPtr& msg) {
+    right_data = *msg;
+    publishMotorData();
+}
+
+void publishMotorData() {
+    motor_msgs::MotorData motor_data;
+    motor_data.data1 = left_data.data;
+    motor_data.data2 = right_data.data;
+    motor_pub.publish(motor_data);
 }
 
 int main(int argc, char **argv) {
-    ros::init(argc, argv, "motor_encoder_combiner");
+    ros::init(argc, argv, "motor_combiner");
     ros::NodeHandle nh;
 
     ros::Subscriber left_encoder_sub = nh.subscribe("/motor_left/encoders", 10, leftEncoderCallback);
     ros::Subscriber right_encoder_sub = nh.subscribe("/motor_right/encoders", 10, rightEncoderCallback);
+    motor_pub = nh.advertise<motor_msgs::MotorData>("/motor", 10);
 
-    ros::Publisher combined_encoder_pub = nh.advertise<std_msgs::Int32>("/motor_encoder", 10);
-
-    ros::Rate r(10); // Adjust the rate as needed
-
-    while (ros::ok()) {
-        // Publish the combined encoder data
-        combined_encoder_pub.publish(combined_encoder);
-        ros::spinOnce();
-        r.sleep();
-    }
+    ros::spin();
 
     return 0;
 }
