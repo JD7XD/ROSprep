@@ -1,88 +1,94 @@
 #include <ros/ros.h>
-
-#include <stdlib.h>
-#include <unistd.h>
-
-#include <std_msgs/Bool.h>
 #include <std_msgs/Int32.h>
-#include <geometry_msgs/Vector3.h>
+#include <geometry_msgs/Quaternion.h>
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
 #include <cmath>
 #include <boost/assign/list_of.hpp>
 
-
-
 #define PI 3.14159265
 #define TwoPI 6.28318531
-#define wheeltrack 0.340   // units : m  
+#define wheeltrack 0.340   // units: m  
 #define EncoderCountsPerWheel 396
-#define wheelradius 0.0425  // units : m
-
+#define wheelradius 0.0425  // units: m
 
 long _PreviousLeftEncoderCounts = 0;
 long _PreviousRightEncoderCounts = 0;
 ros::Time current_time, last_time;
-double DistancePerCount = (3.14159265 * 2 * wheelradius) / (EncoderCountsPerWheel * 4); //the wheel diameter is 0.1m
+double DistancePerCount = (3.14159265 * 2 * wheelradius) / (EncoderCountsPerWheel * 4); // the wheel diameter is 0.085m
 
-//final odometric datas
-double x;
-double y;
-double th;
-double v_left;//left motor speed
-double v_right;//right motor speed
-double vth;//angular velocity of robot
-double deltaLeft;//no of ticks in left encoder since last update
-double deltaRight;//no of ticks in right encoder since last update
-double dt;
-double delta_distance;//distance moved by robot since last update
-double delta_th;//corresponging change in heading
-double delta_x ;//corresponding change in x direction
-double delta_y;//corresponding change in y direction
+// Final odometric data
+double x = 0.0;
+double y = 0.0;
+double th = 0.0;
+double v_left = 0.0;  // left motor speed
+double v_right = 0.0; // right motor speed
+double vth = 0.0;     // angular velocity of robot
+double deltaLeft = 0.0; // no of ticks in left encoder since the last update
+double deltaRight = 0.0; // no of ticks in the right encoder since the last update
+double dt = 0.0;
+double delta_distance = 0.0; // distance moved by robot since the last update
+double delta_th = 0.0; // corresponding change in heading
+double delta_x = 0.0; // corresponding change in x direction
+double delta_y = 0.0; // corresponding change in y direction
 
-
-void WheelCallback(const std_msgs::Int32::ConstPtr& l_enc, const std_msgs::Int32::ConstPtr& r_enc)
+void LeftWheelCallback(const std_msgs::Int32::ConstPtr& l_enc)
 {
   current_time = ros::Time::now();
 
   deltaLeft = l_enc->data - _PreviousLeftEncoderCounts;
+
+  dt = (current_time - last_time).toSec();
+
+  v_left = deltaLeft * DistancePerCount / dt;    // speed = m/s
+
+  delta_distance = deltaLeft * DistancePerCount;
+  delta_th = delta_distance / wheeltrack;
+
+  delta_x = delta_distance * cos(th);
+  delta_y = delta_distance * sin(th);
+
+  x += delta_x;
+  y += delta_y;
+  th += delta_th;
+
+  _PreviousLeftEncoderCounts = l_enc->data;
+
+  last_time = current_time;
+}
+
+void RightWheelCallback(const std_msgs::Int32::ConstPtr& r_enc)
+{
+  current_time = ros::Time::now();
+
   deltaRight = r_enc->data - _PreviousRightEncoderCounts;
 
   dt = (current_time - last_time).toSec();
 
-  v_left = deltaLeft * DistancePerCount/dt;    //speed = m/s
-  v_right = deltaRight * DistancePerCount/dt;  //speed = m/s
+  v_right = deltaRight * DistancePerCount / dt;
 
-  delta_distance=0.5f * (double)(deltaLeft + deltaRight) * DistancePerCount;
-  delta_th = (double)(deltaRight-deltaLeft)*DistancePerCount/wheeltrack; //Distance between the two wheels is 0.36m
-  
-  delta_x = delta_distance*(double)cos(th);
-  delta_y = delta_distance*(double)sin(th);
+  delta_distance = deltaRight * DistancePerCount;
+  delta_th = -delta_distance / wheeltrack;
+
+  delta_x = delta_distance * cos(th);
+  delta_y = delta_distance * sin(th);
 
   x += delta_x;
-
-y += delta_y;
+  y += delta_y;
   th += delta_th;
- 
-  // if (th > PI)
-  //   th -= TwoPI;
-  // else if ( th <= -PI)
-  //   th += TwoPI;
-  
-  _PreviousLeftEncoderCounts = l_enc->data;
+
   _PreviousRightEncoderCounts = r_enc->data;
 
   last_time = current_time;
 }
 
-
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "odometry_publisher");
   ros::NodeHandle nh;
-  // ros::Subscriber sub = nh.subscribe("pos", 100, WheelCallback);
-  ros::Subscriber left_motor_encoder_sub = nh.subscribe("/motor_left/encoder", 10, WheelCallback);
-  ros::Subscriber right_motor_encoder_sub = nh.subscribe("/motor_right/encoder", 10, WheelCallback);
+
+  ros::Subscriber left_encoder_sub = nh.subscribe("/motor_left/encoder", 10, LeftWheelCallback);
+  ros::Subscriber right_encoder_sub = nh.subscribe("/motor_right/encoder", 10, RightWheelCallback);
   ros::Publisher odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 50);
   tf::TransformBroadcaster odom_broadcaster;
 
