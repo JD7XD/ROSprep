@@ -28,12 +28,7 @@ double deltaLeft = 0.0; // no of ticks in left encoder since the last update
 double deltaRight = 0.0; // no of ticks in the right encoder since the last update
 double dt = 0.0;
 double delta_distance = 0.0; // distance moved by robot since the last update
-double deltaRight = 0.0; // no of ticks in the right encoder since the last update
-double dt = 0.0;
-double delta_distance = 0.0; // distance moved by robot since the last update
 double delta_th = 0.0; // corresponding change in heading
-double delta_x = 0.0; // corresponding change in x direction
-double delta_y = 0.0; // corresponding change in y direction
 double enc_thresh = 1.0;
 
 void LeftWheelCallback(const std_msgs::Int32::ConstPtr& l_enc)
@@ -44,51 +39,47 @@ void LeftWheelCallback(const std_msgs::Int32::ConstPtr& l_enc)
 
   dt = (current_time - last_time).toSec();
 
-  if(fabs(deltaLeft)<enc_thresh){deltaLeft=0;}
+  if (fabs(deltaLeft) < enc_thresh) {
+    deltaLeft = 0;
+  }
 
-  v_left = deltaLeft * DistancePerCount / dt;    // speed = m/s
+  v_left = deltaLeft * DistancePerCount / dt;  // speed = m/s
 
   delta_distance = deltaLeft * DistancePerCount;
   delta_th = delta_distance / wheeltrack;
 
-  delta_x = delta_distance * cos(th);
-  delta_y = delta_distance * sin(th);
+  x += delta_distance * cos(th);
+  y += delta_distance * sin(th);
 
-  x += delta_x;
-  y += delta_y;
   th += delta_th;
-_PreviousRightEncoderCounts = r_enc->data;
 
-  last_time = current_time;
+  _PreviousLeftEncoderCounts = l_enc->data;
 }
 
 void RightWheelCallback(const std_msgs::Int32::ConstPtr& r_enc)
 {
   current_time = ros::Time::now();
 
-  deltaRight = -1*(r_enc->data) - _PreviousRightEncoderCounts;
+  deltaRight = -1 * r_enc->data - _PreviousRightEncoderCounts;
 
   dt = (current_time - last_time).toSec();
 
-  if(fabs(deltaRight)<enc_thresh){deltaRight=0.0;}
+  if (fabs(deltaRight) < enc_thresh) {
+    deltaRight = 0.0;
+  }
 
   v_right = deltaRight * DistancePerCount / dt;
 
   delta_distance = deltaRight * DistancePerCount;
   delta_th = -delta_distance / wheeltrack;
 
-  delta_x = delta_distance * cos(th);
-  delta_y = delta_distance * sin(th);
+  x += delta_distance * cos(th);
+  y += delta_distance * sin(th);
 
-  x += delta_x;
-  y += delta_y;
   th += delta_th;
 
   _PreviousRightEncoderCounts = r_enc->data;
-
-  last_time = current_time;
 }
-
 
 int main(int argc, char **argv)
 {
@@ -102,12 +93,21 @@ int main(int argc, char **argv)
 
   ros::Rate r(20);
 
-  while(nh.ok())
-  {
-    //since all odometry is 6DO F we'll need a quaternion created from yaw
-            geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
+  while (nh.ok()) {
+    // Calculate odometry based on delta_x, delta_y, and delta_th
 
- //first, we'll publish the transform over tf
+    // Normalize th to be within the range [0, 2*PI]
+    while (th < 0) {
+      th += TwoPI;
+    }
+    while (th > TwoPI) {
+      th -= TwoPI;
+    }
+
+    // since all odometry is 6DOF, we'll need a quaternion created from yaw
+    geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
+
+    // First, we'll publish the transform over tf
     geometry_msgs::TransformStamped odom_trans;
     odom_trans.header.stamp = current_time;
     odom_trans.header.frame_id = "odom";
@@ -115,47 +115,46 @@ int main(int argc, char **argv)
 
     odom_trans.transform.translation.x = x;
     odom_trans.transform.translation.y = y;
-odom_trans.transform.translation.z = 0.0;
+    odom_trans.transform.translation.z = 0.0;
     odom_trans.transform.rotation = odom_quat;
 
-    //send the transform
+    // Send the transform
     odom_broadcaster.sendTransform(odom_trans);
 
-    //next, we'll publish the odometry message over ROS
+    // Next, we'll publish the odometry message over ROS
     nav_msgs::Odometry odom;
     odom.header.stamp = current_time;
     odom.header.frame_id = "odom";
-    //set the position
+    // Set the position
     odom.pose.pose.position.x = x;
     odom.pose.pose.position.y = y;
     odom.pose.pose.position.z = 0.0;
     odom.pose.pose.orientation = odom_quat;
-    odom.pose.covariance =  boost::assign::list_of(1e-3) (0)   (0)  (0)  (0)  (0)
-                                                   (0) (1e-3)  (0)  (0)  (0)  (0)
-                                                   (0)   (0)  (1e6) (0)  (0)  (0)
-                                                   (0)   (0)   (0) (1e6) (0)  (0)
-                                                   (0)   (0)   (0)  (0) (1e6) (0)
-                                                   (0)   (0)   (0)  (0)  (0)  (1e3) ;
-    //set the velocity
+    odom.pose.covariance = boost::assign::list_of(1e-3)(0)(0)(0)(0)(0)
+      (0)(1e-3)(0)(0)(0)(0)
+      (0)(0)(1e6)(0)(0)(0)
+      (0)(0)(0)(1e6)(0)(0)
+      (0)(0)(0)(0)(1e6)(0)
+      (0)(0)(0)(0)(0)(1e3);
+
+    // Set the velocity
     odom.child_frame_id = "base_link";
 
-odom.twist.twist.linear.x=delta_x/dt;
-    odom.twist.twist.linear.y=delta_y/dt;
-    odom.twist.twist.angular.z = delta_th/dt;
-    odom.twist.covariance =  boost::assign::list_of(1e-3) (0)   (0)  (0)  (0)  (0)
-                                                    (0) (1e-3)  (0)  (0)  (0)  (0)
-                                                    (0)   (0)  (1e6) (0)  (0)  (0)
-                                                    (0)   (0)   (0) (1e6) (0)  (0)
-                                                    (0)   (0)   (0)  (0) (1e6) (0)
-                                                    (0)   (0)   (0)  (0)  (0)  (1e3) ; 
+    odom.twist.twist.linear.x = delta_distance / dt;
+    odom.twist.twist.linear.y = 0.0; // No lateral movement in a differential drive robot
+    odom.twist.twist.angular.z = delta_th / dt;
+    odom.twist.covariance = boost::assign::list_of(1e-3)(0)(0)(0)(0)(0)
+      (0)(1e-3)(0)(0)(0)(0)
+      (0)(0)(1e6)(0)(0)(0)
+      (0)(0)(0)(1e6)(0)(0)
+      (0)(0)(0)(0)(1e6)(0)
+      (0)(0)(0)(0)(0)(1e3);
 
-    // ROS_INFO("Position x = %d and Position y = %d ",x,y);
-
-    //publish the message
+    // Publish the message
     odom_pub.publish(odom);
 
     last_time = current_time;
     ros::spinOnce();
     r.sleep();
-    }
+  }
 }
